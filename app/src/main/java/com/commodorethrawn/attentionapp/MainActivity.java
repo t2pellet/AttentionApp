@@ -1,7 +1,5 @@
 package com.commodorethrawn.attentionapp;
 
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.LightingColorFilter;
@@ -12,14 +10,12 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.android.gms.tasks.Continuation;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.functions.FirebaseFunctions;
-import com.google.firebase.functions.HttpsCallableResult;
+import com.google.firebase.messaging.FirebaseMessaging;
 
+import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -38,7 +34,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
         functions = FirebaseFunctions.getInstance();
         preferences = getSharedPreferences("com.commodorethrawn.attentionapp", MODE_PRIVATE);
-        feedbackText = findViewById(R.id.textView);
+        feedbackText = findViewById(R.id.feedbackText);
         attentionButton = findViewById(R.id.attention_button);
         attentionButton.setOnClickListener(this);
     }
@@ -48,12 +44,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onResume();
         boolean isFirstLaunch = preferences.getBoolean("isFirstLaunch", true);
         if (isFirstLaunch) {
-            preferences.edit().putBoolean("isFirstLaunch", false).apply();
             Intent intent = new Intent(MainActivity.this, FirstLaunchActivity.class);
             startActivity(intent);
         } else {
             boolean isReceiver = !preferences.getBoolean("isSender", false);
-            if (isReceiver) finishAndRemoveTask();
+            if (isReceiver) {
+                System.out.println("BOYFRIEND");
+                FirebaseMessaging.getInstance().subscribeToTopic("boyfriend");
+                finishAndRemoveTask();
+            } else {
+                System.out.println("GIRLFRIEND");
+                FirebaseMessaging.getInstance().subscribeToTopic("girlfriend");
+            }
         }
     }
 
@@ -87,12 +89,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }, 100);
     }
 
-    private Task<String> requestAttention() {
-        return functions
+    private void requestAttention() {
+        functions
                 .getHttpsCallable("requestAttention")
                 .call()
                 .continueWith(task -> {
-                    String result = (String) task.getResult().getData();
+                    String result = (String) Objects.requireNonNull(task.getResult()).getData();
                     displayResult(result);
                     return result;
                 });

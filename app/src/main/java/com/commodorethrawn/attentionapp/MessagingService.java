@@ -2,25 +2,25 @@ package com.commodorethrawn.attentionapp;
 
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
-import android.content.Context;
 import android.content.Intent;
-import android.os.Build;
-import android.util.Log;
+import android.content.SharedPreferences;
 
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.functions.FirebaseFunctions;
-import com.google.firebase.iid.FirebaseInstanceId;
-import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
+import java.util.Objects;
 import java.util.Timer;
 import java.util.TimerTask;
 
 public class MessagingService extends FirebaseMessagingService {
+
+    @Override
+    public void onNewToken(String s) {
+        super.onNewToken(s);
+    }
 
     @Override
     public void onCreate() {
@@ -28,26 +28,6 @@ public class MessagingService extends FirebaseMessagingService {
         createNotificationChannel();
     }
 
-    @Override
-    public void onNewToken(String token) {
-        super.onNewToken(token);
-        updateToken(this, token);
-    }
-
-    public static void updateToken(Context ctx) {
-        FirebaseInstanceId.getInstance().getInstanceId().addOnCompleteListener(result -> {
-            if (result.isSuccessful()) {
-                String token = result.getResult().getToken();
-                updateToken(ctx, token);
-            }
-        });
-    }
-
-    public static void updateToken(Context ctx, String token) {
-        boolean isSender = !ctx.getSharedPreferences("com.commodorethrawn.attentionapp", MODE_PRIVATE).getBoolean("isSender", false);
-        if (isSender) FirebaseFunctions.getInstance().getHttpsCallable("updateBoyfriend").call(token);
-        else FirebaseFunctions.getInstance().getHttpsCallable("updateGirlfriend").call(token);
-    }
 
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
@@ -59,7 +39,7 @@ public class MessagingService extends FirebaseMessagingService {
                 .setContentText(remoteMessage.getData().get("body"))
                 .setPriority(NotificationCompat.PRIORITY_MAX);
         NotificationManagerCompat.from(this).notify(0, notificationBuilder.build());
-        if (remoteMessage.getData().get("type").equals("attention")) {
+        if (Objects.equals(remoteMessage.getData().get("type"), "attention")) {
             Timer timer = new Timer();
             timer.schedule(new TimerTask() {
                 @Override
@@ -70,6 +50,16 @@ public class MessagingService extends FirebaseMessagingService {
                     startActivity(attentionIntent);
                 }
             }, 2000);
+        } else if (Objects.equals(remoteMessage.getData().get("type"), "boyfriend")) {
+            SharedPreferences preferences = getSharedPreferences("com.commodorethrawn.attentionapp", MODE_PRIVATE);
+            preferences.edit().putBoolean("isSetup", true).apply();
+            preferences.edit().putBoolean("isSender", true).apply();
+            preferences.edit().putBoolean("isFirstLaunch", false).apply();
+            System.out.println("RECEIVED UPDATE");
+            Intent startIntent = new Intent(this, MainActivity.class);
+            startIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+            startActivity(startIntent);
         }
     }
 

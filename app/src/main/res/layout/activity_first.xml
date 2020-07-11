@@ -7,6 +7,19 @@
     android:background="@color/colorBackground"
     tools:context=".MainActivity">
 
+    <ProgressBar
+        android:id="@+id/progressBar"
+        style="?android:attr/progressBarStyle"
+        android:layout_width="129dp"
+        android:layout_height="132dp"
+        android:visibility="invisible"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="invisible" />
+
     <Button
         android:id="@+id/btnFedora"
         style="@style/Widget.AppCompat.Button.Small"
@@ -48,7 +61,7 @@
         app:layout_constraintVertical_bias="0.569" />
 
     <TextView
-        android:id="@+id/textView2"
+        android:id="@+id/identifyText"
         android:layout_width="240dp"
         android:layout_height="36dp"
         android:fontFamily="@font/archivo_black"
@@ -61,4 +74,5 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.694" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
