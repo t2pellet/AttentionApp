@@ -18,7 +18,6 @@
                 <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
-
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -27,11 +26,15 @@
         </activity>
         <activity android:name=".FirstLaunchActivity">
         </activity>
-        <activity android:name=".AttentionActivity">
-        </activity>
+        <activity android:name=".AttentionActivity"
+                  android:showOnLockScreen="true"
+                  android:turnScreenOn="true"/>
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="@string/channelId" />
     </application>
 
 </manifest>

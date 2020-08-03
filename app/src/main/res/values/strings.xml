@@ -6,4 +6,6 @@
     <string name="attention_button">Request Attention</string>
     <string name="acknowledge">Acknowledge</string>
     <string name="attention_requested">FEDORA WANTS ATTENTION</string>
+    <string name="channelId">notificationChannel</string>
+    <string name="channelName">Notification Channel</string>
 </resources>
