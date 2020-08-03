@@ -55,7 +55,6 @@ public class MessagingService extends FirebaseMessagingService {
             preferences.edit().putBoolean("isSetup", true).apply();
             preferences.edit().putBoolean("isSender", true).apply();
             preferences.edit().putBoolean("isFirstLaunch", false).apply();
-            System.out.println("RECEIVED UPDATE");
             Intent startIntent = new Intent(this, MainActivity.class);
             startIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             startIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);

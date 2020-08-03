@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -33,6 +34,8 @@ public class AttentionActivity extends AppCompatActivity implements View.OnClick
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_attention);
+        setShowWhenLocked(true);
+        setTurnScreenOn(true);
         functions = FirebaseFunctions.getInstance();
         Uri alarm = RingtoneManager.getActualDefaultRingtoneUri(this, RingtoneManager.TYPE_ALARM);
         mp = MediaPlayer.create(this, alarm);

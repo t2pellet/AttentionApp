@@ -5,6 +5,5 @@
     <color name="colorError">#CF6679</color>
     <color name="colorText">#FFFFFF</color>
     <color name="colorTextVariant">#000000</color>
-    <color name="colorSecondary">#03DAC6</color>
     <color name="colorBackground">#121212</color>
 </resources>
