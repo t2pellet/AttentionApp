@@ -2,65 +2,73 @@ package com.commodorethrawn.attentionapp;
 
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.util.Log;
 
 import androidx.core.app.NotificationCompat;
-import androidx.core.app.NotificationManagerCompat;
 
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 
 import java.util.Objects;
-import java.util.Timer;
-import java.util.TimerTask;
 
 public class MessagingService extends FirebaseMessagingService {
 
-    @Override
-    public void onNewToken(String s) {
-        super.onNewToken(s);
+    private SharedPreferences preferences;
+    private int notificationId;
+
+    public static void generateToken(Context ctx) {
+        FirebaseInstanceId.getInstance().getInstanceId().addOnSuccessListener(result -> {
+            ctx.getSharedPreferences("attentionapp", MODE_PRIVATE).edit()
+                    .putString("token", result.getToken()).apply();
+        });
     }
 
     @Override
     public void onCreate() {
         super.onCreate();
         createNotificationChannel();
+        preferences = getSharedPreferences("attentionapp", MODE_PRIVATE);
+        notificationId = 0;
     }
 
+    @Override
+    public void onNewToken(String s) {
+        super.onNewToken(s);
+        if (preferences.contains("isBoyfriend")) {
+            String reference = preferences.getBoolean("isBoyfriend", false) ? "boyfriend" : "girlfriend";
+            FirebaseDatabase.getInstance().getReference(reference).setValue(s);
+        }
+    }
 
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
-        NotificationCompat.Builder notificationBuilder =
-                new NotificationCompat.Builder(this, getString(R.string.channelId))
-                .setSmallIcon(R.mipmap.ic_launcher)
-                .setContentTitle(remoteMessage.getData().get("title"))
-                .setContentText(remoteMessage.getData().get("body"))
-                .setPriority(NotificationCompat.PRIORITY_MAX)
-                .setChannelId(getString(R.string.channelId));
-        NotificationManagerCompat.from(this).notify(0, notificationBuilder.build());
+        if (Objects.equals(remoteMessage.getData().get("type"), "setup")) setup();
         if (Objects.equals(remoteMessage.getData().get("type"), "attention")) {
-            Timer timer = new Timer();
-            timer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    Intent attentionIntent = new Intent(MessagingService.this, AttentionActivity.class);
-                    attentionIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    attentionIntent.addFlags(Intent.FLAG_FROM_BACKGROUND);
-                    startActivity(attentionIntent);
+            startForegroundService(new Intent(this, AttentionService.class));
+        } else {
+            NotificationCompat.Builder notificationBuilder =
+                    new NotificationCompat.Builder(this, getString(R.string.channelId))
+                            .setSmallIcon(R.mipmap.ic_launcher_foreground)
+                            .setContentTitle(remoteMessage.getData().get("title"))
+                            .setContentText(remoteMessage.getData().get("body"))
+                            .setChannelId(getString(R.string.channelId))
+                            .setPriority(NotificationCompat.PRIORITY_MAX)
+                            .setCategory(NotificationCompat.CATEGORY_CALL);
+            NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            notificationManager.notify(notificationId, notificationBuilder.build());
+        }
+    }
 
-                }
-            }, 2000);
-        } else if (Objects.equals(remoteMessage.getData().get("type"), "boyfriend")) {
-                SharedPreferences preferences = getSharedPreferences("com.commodorethrawn.attentionapp", MODE_PRIVATE);
-                preferences.edit().putBoolean("isSetup", true).apply();
-                preferences.edit().putBoolean("isSender", true).apply();
-                preferences.edit().putBoolean("isFirstLaunch", false).apply();
-                Intent startIntent = new Intent(this, MainActivity.class);
-                startIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                startIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                startActivity(startIntent);
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        try {
+            startService(new Intent(getBaseContext(), MessagingService.class));
+        } catch (Exception ignore) {
         }
     }
 
@@ -72,4 +80,21 @@ public class MessagingService extends FirebaseMessagingService {
         NotificationManager manager = getSystemService(NotificationManager.class);
         manager.createNotificationChannel(channel);
     }
+
+    private void setup() {
+        String token = preferences.getString("token", "");
+        if (token.isEmpty()) {
+            generateToken(this);
+            token = preferences.getString("token", "");
+        }
+        FirebaseDatabase.getInstance().getReference("girlfriend")
+                .setValue(token);
+        preferences.edit().putBoolean("isSetup", true).apply();
+        preferences.edit().putBoolean("isBoyfriend", false).apply();
+        Intent startIntent = new Intent(this, MainActivity.class);
+        startIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        startIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        startActivity(startIntent);
+    }
+
 }

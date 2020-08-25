@@ -1,19 +1,16 @@
 package com.commodorethrawn.attentionapp;
 
+import android.app.NotificationManager;
 import android.content.Context;
-import android.media.MediaPlayer;
-import android.media.RingtoneManager;
-import android.net.Uri;
+import android.content.Intent;
+import android.os.Build;
 import android.os.Bundle;
-import android.os.VibrationEffect;
-import android.os.Vibrator;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
 
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.NotificationManagerCompat;
 
 import com.google.firebase.functions.FirebaseFunctions;
 
@@ -24,28 +21,23 @@ public class AttentionActivity extends AppCompatActivity implements View.OnClick
 
     private FirebaseFunctions functions;
     private TextView attentionText;
-    private Uri alarm;
-    private MediaPlayer mp;
-    private Vibrator v;
     private Timer t;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_attention);
-        setShowWhenLocked(true);
-        setTurnScreenOn(true);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O_MR1) {
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
+        } else {
+            setShowWhenLocked(true);
+            setTurnScreenOn(true);
+        }
         functions = FirebaseFunctions.getInstance();
-        alarm = RingtoneManager.getActualDefaultRingtoneUri(this, RingtoneManager.TYPE_ALARM);
-        v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-        v.vibrate(VibrationEffect.createWaveform(new long[]{1000,1000},0));
-        mp = MediaPlayer.create(this, alarm);
-        mp.setLooping(true);
-        mp.start();
-        t = new Timer();
         attentionText = findViewById(R.id.attentionText);
+        t = new Timer();
         t.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
@@ -56,23 +48,20 @@ public class AttentionActivity extends AppCompatActivity implements View.OnClick
             }
         }, 0, 1000);
         findViewById(R.id.acknowledge).setOnClickListener(this);
-        super.onCreate(savedInstanceState);
     }
 
     @Override
     public void onClick(View view) {
-        NotificationManagerCompat.from(this).cancel(0);
         functions.getHttpsCallable("acknowledge").call();
-        mp.stop();
-        mp.release();
-        v.cancel();
+        ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).cancelAll();
         t.cancel();
         t.purge();
-        finishAffinity();
+        stopService(new Intent(this, AttentionService.class));
+        finishAndRemoveTask();
     }
 
     @Override
-    protected void onStop() {
-        super.onStop();
+    public void onBackPressed() {
     }
+
 }

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <Button
+        android:id="@+id/widgetButton"
+        android:layout_width="239dp"
+        android:layout_height="107dp"
+        android:layout_centerInParent="true"
+        android:background="@drawable/my_btn"
+        android:fontFamily="sans-serif"
+        android:text="@string/attention_button"
+        android:textAlignment="center"
+        android:textAllCaps="true"
+        android:textColor="@color/colorText"
+        android:textSize="24sp"
+        android:textStyle="bold" />
+</RelativeLayout>

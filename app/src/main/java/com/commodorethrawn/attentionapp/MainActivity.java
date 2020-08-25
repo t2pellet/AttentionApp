@@ -1,7 +1,5 @@
 package com.commodorethrawn.attentionapp;
 
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.LightingColorFilter;
@@ -15,7 +13,6 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.google.firebase.functions.FirebaseFunctions;
-import com.google.firebase.messaging.FirebaseMessaging;
 
 import java.util.Objects;
 import java.util.Timer;
@@ -35,7 +32,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         functions = FirebaseFunctions.getInstance();
-        preferences = getSharedPreferences("com.commodorethrawn.attentionapp", MODE_PRIVATE);
+        preferences = getSharedPreferences("attentionapp", MODE_PRIVATE);
         feedbackText = findViewById(R.id.feedbackText);
         attentionButton = findViewById(R.id.attention_button);
         attentionButton.setOnClickListener(this);
@@ -44,26 +41,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onResume() {
         super.onResume();
-        boolean isFirstLaunch = preferences.getBoolean("isFirstLaunch", true);
+        boolean isFirstLaunch = !preferences.getBoolean("isSetup", false);
         if (isFirstLaunch) {
             Intent intent = new Intent(MainActivity.this, FirstLaunchActivity.class);
             startActivity(intent);
-        } else {
-            boolean isReceiver = !preferences.getBoolean("isSender", false);
-            if (isReceiver) {
-                System.out.println("BOYFRIEND");
-                FirebaseMessaging.getInstance().subscribeToTopic("boyfriend");
-                finishAndRemoveTask();
-            } else {
-                System.out.println("GIRLFRIEND");
-                FirebaseMessaging.getInstance().subscribeToTopic("girlfriend");
-            }
+        } else if (preferences.getBoolean("isBoyfriend", false)) {
+            finishAndRemoveTask();
         }
     }
 
     @Override
     public void onClick(View v) {
-        if (System.currentTimeMillis() - lastClick > 10000) {
+        if (System.currentTimeMillis() - lastClick > 8000) {
             requestAttention();
             lastClick = System.currentTimeMillis();
             doClickAnimation(attentionButton);
@@ -78,6 +67,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             }, 1000);
         }
     }
+
     private void doClickAnimation(Button button) {
         Vibrator v = (Vibrator) getSystemService(VIBRATOR_SERVICE);
         v.vibrate(VibrationEffect.createOneShot(100,VibrationEffect.DEFAULT_AMPLITUDE));

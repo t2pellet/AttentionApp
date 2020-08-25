@@ -8,7 +8,7 @@ import android.widget.Button;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.google.firebase.functions.FirebaseFunctions;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.messaging.FirebaseMessaging;
 
 public class FirstLaunchActivity extends AppCompatActivity implements View.OnClickListener {
@@ -20,9 +20,9 @@ public class FirstLaunchActivity extends AppCompatActivity implements View.OnCli
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        FirebaseMessaging.getInstance().subscribeToTopic("setup");
         setContentView(R.layout.activity_first);
-        FirebaseMessaging.getInstance().subscribeToTopic("girlfriend");
-        preferences = getSharedPreferences("com.commodorethrawn.attentionapp", MODE_PRIVATE);
+        preferences = getSharedPreferences("attentionapp", MODE_PRIVATE);
         btnFedora = findViewById(R.id.btnFedora);
         btnTenzin = findViewById(R.id.btnTenzin);
         btnFedora.setOnClickListener(this);
@@ -31,18 +31,24 @@ public class FirstLaunchActivity extends AppCompatActivity implements View.OnCli
 
     @Override
     public void onClick(View v) {
-        if (v == btnFedora) {
-            findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
-            findViewById(R.id.identifyText).setVisibility(View.INVISIBLE);
-            btnFedora.setVisibility(View.INVISIBLE);
-            btnTenzin.setVisibility(View.INVISIBLE);
-        } else {
-            FirebaseMessaging.getInstance().unsubscribeFromTopic("girlfriend");
-            FirebaseMessaging.getInstance().subscribeToTopic("boyfriend");
-            preferences.edit().putBoolean("isSender", false).apply();
-            preferences.edit().putBoolean("isFirstLaunch", false).apply();
-            FirebaseFunctions.getInstance().getHttpsCallable("updateBoyfriend").call();
-            finishAndRemoveTask();
+        MessagingService.generateToken(this);
+        if (preferences.contains("token")) {
+            String token = preferences.getString("token", "");
+            preferences.edit().putString("token", token).apply();
+            if (v == btnFedora) {
+                findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
+                findViewById(R.id.identifyText).setVisibility(View.INVISIBLE);
+                btnFedora.setVisibility(View.INVISIBLE);
+                btnTenzin.setVisibility(View.INVISIBLE);
+                FirebaseDatabase.getInstance().getReference("girlfriend").setValue(token);
+                preferences.edit().putBoolean("isBoyfriend", false).apply();
+            } else {
+                FirebaseDatabase.getInstance().getReference("boyfriend").setValue(token);
+                preferences.edit().putBoolean("isBoyfriend", true).apply();
+                preferences.edit().putBoolean("isSetup", true).apply();
+                FirebaseMessaging.getInstance().unsubscribeFromTopic("setup");
+                finishAndRemoveTask();
+            }
         }
     }
 }
