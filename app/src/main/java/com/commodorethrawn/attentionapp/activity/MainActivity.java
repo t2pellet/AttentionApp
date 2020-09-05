@@ -1,4 +1,4 @@
-package com.commodorethrawn.attentionapp;
+package com.commodorethrawn.attentionapp.activity;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -12,6 +12,7 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.commodorethrawn.attentionapp.R;
 import com.google.firebase.functions.FirebaseFunctions;
 
 import java.util.Objects;

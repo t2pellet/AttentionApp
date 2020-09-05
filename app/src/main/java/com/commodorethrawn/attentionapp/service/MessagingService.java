@@ -1,4 +1,4 @@
-package com.commodorethrawn.attentionapp;
+package com.commodorethrawn.attentionapp.service;
 
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
@@ -8,6 +8,8 @@ import android.content.SharedPreferences;
 
 import androidx.core.app.NotificationCompat;
 
+import com.commodorethrawn.attentionapp.R;
+import com.commodorethrawn.attentionapp.activity.MainActivity;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.messaging.FirebaseMessagingService;
@@ -72,6 +74,9 @@ public class MessagingService extends FirebaseMessagingService {
         }
     }
 
+    /**
+     * Creates the default notification channel
+     */
     private void createNotificationChannel() {
         String id = getString(R.string.channelId);
         String name = getString(R.string.channelName);
@@ -81,6 +86,9 @@ public class MessagingService extends FirebaseMessagingService {
         manager.createNotificationChannel(channel);
     }
 
+    /**
+     * Sets up this messaging service
+     */
     private void setup() {
         String token = preferences.getString("token", "");
         if (token.isEmpty()) {

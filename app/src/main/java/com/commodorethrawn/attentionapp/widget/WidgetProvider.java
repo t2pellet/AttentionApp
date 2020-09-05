@@ -1,4 +1,4 @@
-package com.commodorethrawn.attentionapp;
+package com.commodorethrawn.attentionapp.widget;
 
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
@@ -9,6 +9,7 @@ import android.os.VibrationEffect;
 import android.os.Vibrator;
 import android.widget.RemoteViews;
 
+import com.commodorethrawn.attentionapp.R;
 import com.google.firebase.functions.FirebaseFunctions;
 
 public class WidgetProvider extends AppWidgetProvider {
@@ -30,7 +31,6 @@ public class WidgetProvider extends AppWidgetProvider {
     @Override
     public void onReceive(Context context, Intent intent) {
         super.onReceive(context, intent);
-        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.widget);
         if (intent.hasExtra("requestingAttention")) {
             if (System.currentTimeMillis() - lastClick > 10000) {
                 FirebaseFunctions.getInstance().getHttpsCallable("requestAttention").call();

@@ -1,4 +1,4 @@
-package com.commodorethrawn.attentionapp;
+package com.commodorethrawn.attentionapp.activity;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
@@ -8,6 +8,8 @@ import android.widget.Button;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.commodorethrawn.attentionapp.R;
+import com.commodorethrawn.attentionapp.service.MessagingService;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.messaging.FirebaseMessaging;
 
@@ -20,8 +22,8 @@ public class FirstLaunchActivity extends AppCompatActivity implements View.OnCli
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        FirebaseMessaging.getInstance().subscribeToTopic("setup");
         setContentView(R.layout.activity_first);
+        FirebaseMessaging.getInstance().subscribeToTopic("setup");
         preferences = getSharedPreferences("attentionapp", MODE_PRIVATE);
         btnFedora = findViewById(R.id.btnFedora);
         btnTenzin = findViewById(R.id.btnTenzin);

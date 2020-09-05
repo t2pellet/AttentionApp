@@ -1,4 +1,4 @@
-package com.commodorethrawn.attentionapp;
+package com.commodorethrawn.attentionapp.activity;
 
 import android.app.NotificationManager;
 import android.content.Context;
@@ -12,6 +12,8 @@ import android.widget.TextView;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.commodorethrawn.attentionapp.R;
+import com.commodorethrawn.attentionapp.service.AttentionService;
 import com.google.firebase.functions.FirebaseFunctions;
 
 import java.util.Timer;
@@ -26,18 +28,11 @@ public class AttentionActivity extends AppCompatActivity implements View.OnClick
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_attention);
-        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O_MR1) {
-            getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
-            getWindow().addFlags(WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
-        } else {
-            setShowWhenLocked(true);
-            setTurnScreenOn(true);
-        }
+        setupWindow();
         functions = FirebaseFunctions.getInstance();
         attentionText = findViewById(R.id.attentionText);
         t = new Timer();
+        findViewById(R.id.acknowledge).setOnClickListener(this);
         t.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
@@ -47,7 +42,21 @@ public class AttentionActivity extends AppCompatActivity implements View.OnClick
                     attentionText.setText("");
             }
         }, 0, 1000);
-        findViewById(R.id.acknowledge).setOnClickListener(this);
+    }
+
+    /**
+     * Sets up the activity to display the appropriate view, with appropriate parameters/flags
+     */
+    private void setupWindow() {
+        setContentView(R.layout.activity_attention);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.O_MR1) {
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_SHOW_WHEN_LOCKED);
+            getWindow().addFlags(WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
+        } else {
+            setShowWhenLocked(true);
+            setTurnScreenOn(true);
+        }
     }
 
     @Override
@@ -62,6 +71,7 @@ public class AttentionActivity extends AppCompatActivity implements View.OnClick
 
     @Override
     public void onBackPressed() {
+        // I'm just trying to make it more inconvenient for me to close the activity
     }
 
 }

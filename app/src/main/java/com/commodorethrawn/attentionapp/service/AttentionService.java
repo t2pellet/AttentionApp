@@ -1,4 +1,4 @@
-package com.commodorethrawn.attentionapp;
+package com.commodorethrawn.attentionapp.service;
 
 import android.app.PendingIntent;
 import android.app.Service;
@@ -17,6 +17,9 @@ import android.os.Vibrator;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 
+import com.commodorethrawn.attentionapp.R;
+import com.commodorethrawn.attentionapp.activity.AttentionActivity;
+
 import java.io.IOException;
 
 public class AttentionService extends Service {
@@ -34,6 +37,18 @@ public class AttentionService extends Service {
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        displayNotification();
+        alarm = RingtoneManager.getActualDefaultRingtoneUri(this, RingtoneManager.TYPE_ALARM);
+        v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        v.vibrate(VibrationEffect.createWaveform(new long[]{1000, 1000}, 0));
+        startSound();
+        return START_STICKY;
+    }
+
+    /**
+     * Creates and displays the notification and popup view for the foreground service
+     */
+    private void displayNotification() {
         Intent notificationIntent = new Intent(this, AttentionActivity.class);
         notificationIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         notificationIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
@@ -53,17 +68,19 @@ public class AttentionService extends Service {
                         .setFullScreenIntent(pendingIntent, true);
         startForeground(notificationId++, notificationBuilder.build());
         PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        wakeDevice(pm);
+        if (pm.isInteractive()) startActivity(notificationIntent);
+    }
+
+    /**
+     * Wakes the device
+     *
+     * @param pm the PowerManager
+     */
+    private void wakeDevice(PowerManager pm) {
         PowerManager.WakeLock wake = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK
                 | PowerManager.ACQUIRE_CAUSES_WAKEUP, "ATTENTION:");
         wake.acquire(10 * 60 * 1000L /*10 minutes*/);
-        if (pm.isInteractive()) {
-            startActivity(notificationIntent);
-        }
-        alarm = RingtoneManager.getActualDefaultRingtoneUri(this, RingtoneManager.TYPE_ALARM);
-        v = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
-        v.vibrate(VibrationEffect.createWaveform(new long[]{1000, 1000}, 0));
-        startSound();
-        return START_STICKY;
     }
 
     @Override
