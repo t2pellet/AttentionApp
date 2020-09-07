@@ -24,7 +24,6 @@ import java.io.IOException;
 
 public class AttentionService extends Service {
 
-    private int notificationId;
     private Uri alarm;
     private MediaPlayer mp;
     private Vibrator v;
@@ -32,7 +31,6 @@ public class AttentionService extends Service {
     @Override
     public void onCreate() {
         super.onCreate();
-        notificationId = 1;
     }
 
     @Override
@@ -43,44 +41,6 @@ public class AttentionService extends Service {
         v.vibrate(VibrationEffect.createWaveform(new long[]{1000, 1000}, 0));
         startSound();
         return START_STICKY;
-    }
-
-    /**
-     * Creates and displays the notification and popup view for the foreground service
-     */
-    private void displayNotification() {
-        Intent notificationIntent = new Intent(this, AttentionActivity.class);
-        notificationIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-        notificationIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
-        notificationIntent.addFlags(Intent.FLAG_FROM_BACKGROUND);
-        notificationIntent.addFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT);
-        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
-                notificationIntent, 0);
-        NotificationCompat.Builder notificationBuilder =
-                new NotificationCompat.Builder(this, getString(R.string.channelId))
-                        .setSmallIcon(R.mipmap.ic_launcher_foreground)
-                        .setContentTitle("Attention Requested")
-                        .setContentText("Fedora has requested your attention")
-                        .setChannelId(getString(R.string.channelId))
-                        .setPriority(NotificationCompat.PRIORITY_MAX)
-                        .setCategory(NotificationCompat.CATEGORY_CALL)
-                        .setContentIntent(pendingIntent)
-                        .setFullScreenIntent(pendingIntent, true);
-        startForeground(notificationId++, notificationBuilder.build());
-        PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
-        wakeDevice(pm);
-        if (pm.isInteractive()) startActivity(notificationIntent);
-    }
-
-    /**
-     * Wakes the device
-     *
-     * @param pm the PowerManager
-     */
-    private void wakeDevice(PowerManager pm) {
-        PowerManager.WakeLock wake = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK
-                | PowerManager.ACQUIRE_CAUSES_WAKEUP, "ATTENTION:");
-        wake.acquire(10 * 60 * 1000L /*10 minutes*/);
     }
 
     @Override
@@ -96,6 +56,50 @@ public class AttentionService extends Service {
         return null;
     }
 
+    /**
+     * Creates and displays the notification and popup view for the foreground service
+     */
+    private void displayNotification() {
+        Intent notificationIntent = new Intent(this, AttentionActivity.class);
+        notificationIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+        notificationIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        notificationIntent.addFlags(Intent.FLAG_FROM_BACKGROUND);
+        notificationIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        notificationIntent.addFlags(Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT);
+        PendingIntent pendingIntent = PendingIntent.getActivity(this, 0,
+                notificationIntent, 0);
+        String parterName = getSharedPreferences("attentionapp", MODE_PRIVATE)
+                .getString("parterName", "");
+        NotificationCompat.Builder notificationBuilder =
+                new NotificationCompat.Builder(this, getString(R.string.channelId))
+                        .setSmallIcon(R.mipmap.ic_launcher_foreground)
+                        .setContentTitle("Attention Requested")
+                        .setContentText(parterName + " has requested your attention")
+                        .setChannelId(getString(R.string.channelId))
+                        .setPriority(NotificationCompat.PRIORITY_MAX)
+                        .setCategory(NotificationCompat.CATEGORY_CALL)
+                        .setContentIntent(pendingIntent)
+                        .setFullScreenIntent(pendingIntent, true);
+        startForeground(++MessagingService.notificationId, notificationBuilder.build());
+        PowerManager pm = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        wakeDevice(pm);
+        startActivity(notificationIntent);
+    }
+
+    /**
+     * Wakes the device
+     *
+     * @param pm the PowerManager
+     */
+    private void wakeDevice(PowerManager pm) {
+        PowerManager.WakeLock wake = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK
+                | PowerManager.ACQUIRE_CAUSES_WAKEUP, "ATTENTION:");
+        wake.acquire(10 * 60 * 1000L /*10 minutes*/);
+    }
+
+    /**
+     * Starts playing the alarm sound on the device
+     */
     private void startSound() {
         mp = new MediaPlayer();
         AudioAttributes aa = new AudioAttributes.Builder()

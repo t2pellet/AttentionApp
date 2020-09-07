@@ -20,14 +20,7 @@ import java.util.Objects;
 public class MessagingService extends FirebaseMessagingService {
 
     private SharedPreferences preferences;
-    private int notificationId;
-
-    public static void generateToken(Context ctx) {
-        FirebaseInstanceId.getInstance().getInstanceId().addOnSuccessListener(result -> {
-            ctx.getSharedPreferences("attentionapp", MODE_PRIVATE).edit()
-                    .putString("token", result.getToken()).apply();
-        });
-    }
+    public static int notificationId;
 
     @Override
     public void onCreate() {
@@ -46,22 +39,41 @@ public class MessagingService extends FirebaseMessagingService {
         }
     }
 
+    public static void generateToken(Context ctx) {
+        FirebaseInstanceId.getInstance().getInstanceId().addOnSuccessListener(result -> {
+            ctx.getSharedPreferences("attentionapp", MODE_PRIVATE).edit()
+                    .putString("token", result.getToken()).apply();
+        });
+    }
+
+    public static void createNotification(Context ctx, String title, String body, int id) {
+        NotificationCompat.Builder notificationBuilder =
+                new NotificationCompat.Builder(ctx, ctx.getString(R.string.channelId))
+                        .setSmallIcon(R.mipmap.ic_launcher_foreground)
+                        .setContentTitle(title)
+                        .setContentText(body)
+                        .setChannelId(ctx.getString(R.string.channelId))
+                        .setPriority(NotificationCompat.PRIORITY_MAX)
+                        .setCategory(NotificationCompat.CATEGORY_CALL);
+        NotificationManager notificationManager = (NotificationManager) ctx.getSystemService(Context.NOTIFICATION_SERVICE);
+        notificationManager.notify(id, notificationBuilder.build());
+    }
+
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
-        if (Objects.equals(remoteMessage.getData().get("type"), "setup")) setup();
         if (Objects.equals(remoteMessage.getData().get("type"), "attention")) {
+            preferences.edit().putString("parterName", remoteMessage.getData().get("name")).apply();
             startForegroundService(new Intent(this, AttentionService.class));
         } else {
-            NotificationCompat.Builder notificationBuilder =
-                    new NotificationCompat.Builder(this, getString(R.string.channelId))
-                            .setSmallIcon(R.mipmap.ic_launcher_foreground)
-                            .setContentTitle(remoteMessage.getData().get("title"))
-                            .setContentText(remoteMessage.getData().get("body"))
-                            .setChannelId(getString(R.string.channelId))
-                            .setPriority(NotificationCompat.PRIORITY_MAX)
-                            .setCategory(NotificationCompat.CATEGORY_CALL);
-            NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-            notificationManager.notify(notificationId, notificationBuilder.build());
+            if (Objects.equals(remoteMessage.getData().get("type"), "setup")) {
+                System.out.println("SETUP DONE");
+                setup();
+            }
+            createNotification(
+                    this,
+                    remoteMessage.getData().get("title"),
+                    remoteMessage.getData().get("body"),
+                    ++notificationId);
         }
     }
 
@@ -90,15 +102,7 @@ public class MessagingService extends FirebaseMessagingService {
      * Sets up this messaging service
      */
     private void setup() {
-        String token = preferences.getString("token", "");
-        if (token.isEmpty()) {
-            generateToken(this);
-            token = preferences.getString("token", "");
-        }
-        FirebaseDatabase.getInstance().getReference("girlfriend")
-                .setValue(token);
         preferences.edit().putBoolean("isSetup", true).apply();
-        preferences.edit().putBoolean("isBoyfriend", false).apply();
         Intent startIntent = new Intent(this, MainActivity.class);
         startIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK);

@@ -12,6 +12,8 @@ import android.widget.RemoteViews;
 import com.commodorethrawn.attentionapp.R;
 import com.google.firebase.functions.FirebaseFunctions;
 
+import static android.content.Context.MODE_PRIVATE;
+
 public class WidgetProvider extends AppWidgetProvider {
 
     private static long lastClick = System.currentTimeMillis();
@@ -32,11 +34,15 @@ public class WidgetProvider extends AppWidgetProvider {
     public void onReceive(Context context, Intent intent) {
         super.onReceive(context, intent);
         if (intent.hasExtra("requestingAttention")) {
-            if (System.currentTimeMillis() - lastClick > 10000) {
-                FirebaseFunctions.getInstance().getHttpsCallable("requestAttention").call();
-                lastClick = System.currentTimeMillis();
-                Vibrator v = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
-                v.vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE));
+            if (System.currentTimeMillis() - lastClick > 5000) {
+                String coupleId = context.getSharedPreferences("attentionapp", MODE_PRIVATE)
+                        .getString("coupleId", "");
+                if (coupleId != null && !coupleId.isEmpty()) {
+                    FirebaseFunctions.getInstance().getHttpsCallable("requestAttention").call(coupleId);
+                    lastClick = System.currentTimeMillis();
+                    Vibrator v = (Vibrator) context.getSystemService(Context.VIBRATOR_SERVICE);
+                    v.vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE));
+                }
             }
         }
     }

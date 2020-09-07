@@ -3,6 +3,7 @@ package com.commodorethrawn.attentionapp.activity;
 import android.app.NotificationManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
@@ -22,6 +23,7 @@ import java.util.TimerTask;
 public class AttentionActivity extends AppCompatActivity implements View.OnClickListener {
 
     private FirebaseFunctions functions;
+    private SharedPreferences preferences;
     private TextView attentionText;
     private Timer t;
 
@@ -30,14 +32,17 @@ public class AttentionActivity extends AppCompatActivity implements View.OnClick
         super.onCreate(savedInstanceState);
         setupWindow();
         functions = FirebaseFunctions.getInstance();
+        preferences = getSharedPreferences("attentionapp", MODE_PRIVATE);
         attentionText = findViewById(R.id.attentionText);
+        String parterName = preferences.getString("parterName", "").toUpperCase();
+        String attentionTextValue = parterName + " WANTS ATTENTION";
         t = new Timer();
         findViewById(R.id.acknowledge).setOnClickListener(this);
         t.scheduleAtFixedRate(new TimerTask() {
             @Override
             public void run() {
                 if (attentionText.getText().equals(""))
-                    attentionText.setText(getString(R.string.attention_requested));
+                    attentionText.setText(attentionTextValue);
                 else
                     attentionText.setText("");
             }
@@ -61,7 +66,8 @@ public class AttentionActivity extends AppCompatActivity implements View.OnClick
 
     @Override
     public void onClick(View view) {
-        functions.getHttpsCallable("acknowledge").call();
+        String coupleId = preferences.getString("coupleId", "");
+        functions.getHttpsCallable("acknowledge").call(coupleId);
         ((NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE)).cancelAll();
         t.cancel();
         t.purge();

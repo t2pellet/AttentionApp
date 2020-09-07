@@ -1,8 +1,12 @@
 <resources>
     <string name="app_name">Attention</string>
-    <string name="identify">Who Are You?</string>
-    <string name="girlfriend">Fedora</string>
-    <string name="boyfriend">Tenzin</string>
+    <string name="welcome">First Time Setup</string>
+    <string name="codeGive">Give This Code</string>
+    <string name="codeEnter">Enter the Code</string>
+    <string name="nameEnter">Enter Your Name</string>
+    <string name="confirm">Confirm</string>
+    <string name="get">I need attention</string>
+    <string name="give">I give attention</string>
     <string name="attention_button">Request Attention</string>
     <string name="acknowledge">Acknowledge</string>
     <string name="attention_requested">FEDORA WANTS ATTENTION</string>

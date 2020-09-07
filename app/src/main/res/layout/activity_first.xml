@@ -21,13 +21,13 @@
         tools:visibility="invisible" />
 
     <Button
-        android:id="@+id/btnFedora"
+        android:id="@+id/btnGet"
         style="@style/Widget.AppCompat.Button.Small"
         android:layout_width="244dp"
         android:layout_height="76dp"
         android:background="@drawable/my_btn"
         android:fontFamily="sans-serif"
-        android:text="@string/girlfriend"
+        android:text="@string/get"
         android:textAlignment="center"
         android:textAllCaps="true"
         android:textColor="@color/colorText"
@@ -41,13 +41,13 @@
         app:layout_constraintVertical_bias="0.386" />
 
     <Button
-        android:id="@+id/btnTenzin"
+        android:id="@+id/btnGive"
         style="@style/Widget.AppCompat.Button.Small"
         android:layout_width="244dp"
         android:layout_height="76dp"
         android:background="@drawable/my_btn"
         android:fontFamily="sans-serif"
-        android:text="@string/boyfriend"
+        android:text="@string/give"
         android:textAlignment="center"
         android:textAllCaps="true"
         android:textColor="@color/colorText"
@@ -64,15 +64,17 @@
         android:id="@+id/identifyText"
         android:layout_width="240dp"
         android:layout_height="36dp"
+        android:layout_marginTop="116dp"
         android:fontFamily="@font/archivo_black"
-        android:text="@string/identify"
+        android:text="@string/welcome"
         android:textAlignment="center"
         android:textColor="@color/colorText"
         android:textSize="24sp"
-        app:layout_constraintBottom_toTopOf="@+id/btnFedora"
+        app:layout_constraintBottom_toTopOf="@+id/btnGet"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.508"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.694" />
+        app:layout_constraintVertical_bias="0.41" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
