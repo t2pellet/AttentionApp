@@ -1,22 +1,19 @@
 package com.commodorethrawn.attentionapp.activity;
 
-import android.content.Intent;
-import android.content.SharedPreferences;
-import android.os.Bundle;
-import android.view.View;
-import android.widget.Button;
-import android.widget.TextView;
-
-import androidx.appcompat.app.AppCompatActivity;
-
-import com.commodorethrawn.attentionapp.R;
-import com.commodorethrawn.attentionapp.util.ButtonUtil;
-import com.google.firebase.functions.FirebaseFunctions;
-
-import java.util.Timer;
+import android.app.Activity
+import android.content.Intent
+import android.content.SharedPreferences
+import android.os.Bundle
+import android.view.View
+import android.widget.Button
+import android.widget.TextView
+import com.commodorethrawn.attentionapp.R
+import com.commodorethrawn.attentionapp.util.ButtonUtil
+import com.google.firebase.functions.FirebaseFunctions
+import java.util.*
 import kotlin.concurrent.schedule
 
-class MainActivity : AppCompatActivity(), View.OnClickListener {
+class MainActivity : Activity(), View.OnClickListener {
 
     private lateinit var preferences : SharedPreferences
     private lateinit var functions : FirebaseFunctions

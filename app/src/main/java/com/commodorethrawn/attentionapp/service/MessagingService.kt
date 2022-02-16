@@ -52,7 +52,7 @@ class MessagingService : FirebaseMessagingService() {
         notificationId = 0;
     }
 
-    override fun onNewToken(s : String?) {
+    override fun onNewToken(s : String) {
         super.onNewToken(s);
         if (preferences.contains("isBoyfriend")) {
             val reference = if (preferences.getBoolean("isBoyfriend", false)) "boyfriend" else "girlfriend"
@@ -60,8 +60,8 @@ class MessagingService : FirebaseMessagingService() {
         }
     }
 
-    override fun onMessageReceived(remoteMessage : RemoteMessage?) {
-        if (Objects.equals(remoteMessage!!.data["type"], "attention")) {
+    override fun onMessageReceived(remoteMessage : RemoteMessage) {
+        if (Objects.equals(remoteMessage.data["type"], "attention")) {
             preferences.edit().putString("parterName", remoteMessage.data["name"]).apply();
             startForegroundService(Intent(this, AttentionService::class.java))
         } else {

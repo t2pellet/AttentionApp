@@ -1,5 +1,6 @@
 package com.commodorethrawn.attentionapp.activity;
 
+import android.app.Activity
 import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
@@ -10,14 +11,13 @@ import android.view.View
 import android.view.WindowManager
 import android.widget.Button
 import android.widget.TextView
-import androidx.appcompat.app.AppCompatActivity
 import com.commodorethrawn.attentionapp.R
 import com.commodorethrawn.attentionapp.service.AttentionService
 import com.google.firebase.functions.FirebaseFunctions
 import java.util.*
 import kotlin.concurrent.scheduleAtFixedRate
 
-class AttentionActivity : AppCompatActivity(), View.OnClickListener {
+class AttentionActivity : Activity(), View.OnClickListener {
 
     private lateinit var functions : FirebaseFunctions
     private lateinit var preferences : SharedPreferences
