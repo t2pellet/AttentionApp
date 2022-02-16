@@ -1,7 +1,6 @@
 # AttentionApp
 
-Made for couples to be able to 'request' each other's attention
-
+Silly app I made for people to pester each other with requests for attention
 
 # First Time Setup
 
