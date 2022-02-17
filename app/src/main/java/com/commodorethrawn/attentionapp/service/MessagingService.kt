@@ -1,38 +1,30 @@
 package com.commodorethrawn.attentionapp.service;
 
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
-import android.content.Context;
-import android.content.Intent;
-import android.content.SharedPreferences;
-
-import androidx.core.app.NotificationCompat;
-
-import com.commodorethrawn.attentionapp.R;
-import com.commodorethrawn.attentionapp.activity.MainActivity;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.iid.FirebaseInstanceId;
-import com.google.firebase.messaging.FirebaseMessagingService;
-import com.google.firebase.messaging.RemoteMessage;
-import java.lang.Exception
-
-import java.util.Objects;
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.Context
+import android.content.Intent
+import androidx.core.app.NotificationCompat
+import com.commodorethrawn.attentionapp.R
+import com.commodorethrawn.attentionapp.activity.MainActivity
+import com.commodorethrawn.attentionapp.util.DatabaseUtil
+import com.commodorethrawn.attentionapp.util.PreferenceUtil
+import com.google.firebase.messaging.FirebaseMessaging
+import com.google.firebase.messaging.FirebaseMessagingService
+import com.google.firebase.messaging.RemoteMessage
 
 class MessagingService : FirebaseMessagingService() {
-
-    private lateinit var preferences : SharedPreferences
 
     companion object {
         var notificationId = -1
 
         fun generateToken(ctx : Context) {
-            FirebaseInstanceId.getInstance().instanceId.addOnSuccessListener {
-                ctx.getSharedPreferences("attentionapp", MODE_PRIVATE).edit()
-                        .putString("token", it.token).apply()
+            FirebaseMessaging.getInstance().token.continueWith {
+                PreferenceUtil.token = it.result
             }
         }
 
-        fun createNotification(ctx : Context, title : String, body : String, id : Int) {
+        fun createNotification(ctx : Context, title : String, body : String) {
             val notificationBuilder = NotificationCompat.Builder(ctx, ctx.getString(R.string.channelId))
                     .setSmallIcon(R.mipmap.ic_launcher_foreground)
                     .setContentTitle(title)
@@ -41,39 +33,36 @@ class MessagingService : FirebaseMessagingService() {
                     .setPriority(NotificationCompat.PRIORITY_MAX)
                     .setCategory(NotificationCompat.CATEGORY_CALL)
             val notificationManager= ctx.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            notificationManager.notify(id, notificationBuilder.build())
+            notificationManager.notify(notificationId++, notificationBuilder.build())
         }
     }
 
     override fun onCreate() {
         super.onCreate();
         createNotificationChannel();
-        preferences = getSharedPreferences("attentionapp", MODE_PRIVATE);
         notificationId = 0;
     }
 
     override fun onNewToken(s : String) {
-        super.onNewToken(s);
-        if (preferences.contains("isBoyfriend")) {
-            val reference = if (preferences.getBoolean("isBoyfriend", false)) "boyfriend" else "girlfriend"
-            FirebaseDatabase.getInstance().getReference(reference).setValue(s);
+        super.onNewToken(s)
+        DatabaseUtil.coupleExists().continueWith {
+            if (it.result) DatabaseUtil.addToDB()
         }
     }
 
     override fun onMessageReceived(remoteMessage : RemoteMessage) {
-        if (Objects.equals(remoteMessage.data["type"], "attention")) {
-            preferences.edit().putString("parterName", remoteMessage.data["name"]).apply();
-            startForegroundService(Intent(this, AttentionService::class.java))
-        } else {
-            if (Objects.equals(remoteMessage.data["type"], "setup")) {
-                System.out.println("SETUP DONE");
-                setup();
+        when (remoteMessage.data["type"]) {
+            "setup" -> {
+                PreferenceUtil.parterName = remoteMessage.data["name"]!!
+                createNotification(this, "Setup Complete", "Paired with ${remoteMessage.data["name"]}")
+                setup()
             }
-            createNotification(
-                    this,
-                    remoteMessage.data["title"]!!,
-                    remoteMessage.data["body"]!!,
-                    ++notificationId)
+            "request" -> {
+                startForegroundService(Intent(this, AttentionService::class.java))
+            }
+            "response" -> {
+                createNotification(this, "Response Received!", "${PreferenceUtil.parterName} responded")
+            }
         }
     }
 
@@ -101,7 +90,7 @@ class MessagingService : FirebaseMessagingService() {
      * Sets up this messaging service
      */
     private fun setup() {
-        preferences.edit().putBoolean("isSetup", true).apply()
+        PreferenceUtil.setupComplete = true
         val startIntent = Intent(this, MainActivity::class.java)
         startIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         startIntent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)

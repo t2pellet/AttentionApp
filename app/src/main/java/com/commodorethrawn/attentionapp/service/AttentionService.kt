@@ -1,26 +1,22 @@
 package com.commodorethrawn.attentionapp.service;
 
-import android.app.PendingIntent;
-import android.app.Service;
-import android.content.Context;
-import android.content.Intent;
-import android.media.AudioAttributes;
-import android.media.AudioManager;
-import android.media.MediaPlayer;
-import android.media.RingtoneManager;
-import android.net.Uri;
-import android.os.IBinder;
-import android.os.PowerManager;
-import android.os.VibrationEffect;
-import android.os.Vibrator;
-
-import androidx.annotation.Nullable;
-import androidx.core.app.NotificationCompat;
-
-import com.commodorethrawn.attentionapp.R;
-import com.commodorethrawn.attentionapp.activity.AttentionActivity;
-
-import java.io.IOException;
+import android.app.PendingIntent
+import android.app.Service
+import android.content.Context
+import android.content.Intent
+import android.media.AudioAttributes
+import android.media.AudioManager
+import android.media.MediaPlayer
+import android.media.RingtoneManager
+import android.net.Uri
+import android.os.IBinder
+import android.os.PowerManager
+import android.os.VibrationEffect
+import android.os.Vibrator
+import androidx.core.app.NotificationCompat
+import com.commodorethrawn.attentionapp.R
+import com.commodorethrawn.attentionapp.activity.AttentionActivity
+import java.io.IOException
 
 class AttentionService : Service() {
 
@@ -69,7 +65,7 @@ class AttentionService : Service() {
         val partnerName = getSharedPreferences("attentionapp", MODE_PRIVATE).getString("partnerName", "")
         val notificationBuilder = NotificationCompat.Builder(this, getString(R.string.channelId))
                 .setSmallIcon(R.mipmap.ic_launcher_foreground)
-                .setContentText(partnerName + " has requested your attention")
+                .setContentText("$partnerName has requested your attention")
                 .setChannelId(getString(R.string.channelId))
                 .setPriority(NotificationCompat.PRIORITY_MAX)
                 .setCategory(NotificationCompat.CATEGORY_CALL)
@@ -86,7 +82,7 @@ class AttentionService : Service() {
      */
     private fun wakeDevice() {
         val wake = pm.newWakeLock(PowerManager.SCREEN_BRIGHT_WAKE_LOCK or PowerManager.ACQUIRE_CAUSES_WAKEUP, "ATTENTION:")
-        wake.acquire(10 * 60 * 1000L /*10 minutes*/);
+        wake.acquire(10 * 60 * 1000L /*10 minutes*/)
     }
 
     /**
@@ -97,13 +93,13 @@ class AttentionService : Service() {
                 .setUsage(AudioAttributes.USAGE_ALARM)
                 .setLegacyStreamType(AudioManager.STREAM_ALARM)
                 .setContentType(AudioAttributes.CONTENT_TYPE_UNKNOWN)
-                .build();
-        mp.setAudioAttributes(aa);
-        mp.setLooping(true);
+                .build()
+        mp.setAudioAttributes(aa)
+        mp.isLooping = true
         try {
-            mp.setDataSource(this, alarm);
-            mp.prepare();
-            mp.start();
+            mp.setDataSource(this, alarm)
+            mp.prepare()
+            mp.start()
         } catch (ignored :  IOException) {
         }
     }

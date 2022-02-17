@@ -16,7 +16,13 @@ import android.content.Context.MODE_PRIVATE;
 
 class WidgetProvider : AppWidgetProvider() {
 
+    private lateinit var functions : FirebaseFunctions
     private var lastCLick = System.currentTimeMillis()
+
+    override fun onEnabled(context: Context?) {
+        super.onEnabled(context)
+        functions = FirebaseFunctions.getInstance()
+    }
 
     override fun onUpdate(context: Context?, appWidgetManager: AppWidgetManager?, appWidgetIds: IntArray?) {
         for (currentId in appWidgetIds!!) {
@@ -32,8 +38,8 @@ class WidgetProvider : AppWidgetProvider() {
     override fun onReceive(context: Context?, intent: Intent?) {
         if (intent != null && intent.hasExtra("requestingAttention") && System.currentTimeMillis() - lastCLick > 5000) {
             val coupleId = context!!.getSharedPreferences("attentionapp", MODE_PRIVATE).getString("coupleId", "")
-            if (coupleId != null && !coupleId.isEmpty()) {
-                FirebaseFunctions.getInstance().getHttpsCallable("requestAttention").call(coupleId)
+            if (coupleId != null && coupleId.isNotEmpty()) {
+                functions.getHttpsCallable("request").call(coupleId)
                 lastCLick = System.currentTimeMillis()
                 val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
                 vibrator.vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE))

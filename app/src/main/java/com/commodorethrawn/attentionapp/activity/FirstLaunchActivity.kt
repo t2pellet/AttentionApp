@@ -1,100 +1,94 @@
 package com.commodorethrawn.attentionapp.activity;
 
 import android.app.Activity
-import android.content.SharedPreferences;
-import android.os.Bundle;
-import android.view.View;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.TextView;
-
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-
-import com.commodorethrawn.attentionapp.R;
-import com.commodorethrawn.attentionapp.service.MessagingService;
-import com.commodorethrawn.attentionapp.util.ButtonUtil;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
-import com.google.firebase.functions.FirebaseFunctions;
-
-import java.util.UUID;
+import android.os.Bundle
+import android.view.View
+import android.widget.Button
+import android.widget.EditText
+import android.widget.TextView
+import com.commodorethrawn.attentionapp.R
+import com.commodorethrawn.attentionapp.service.MessagingService
+import com.commodorethrawn.attentionapp.util.ButtonUtil
+import com.commodorethrawn.attentionapp.util.DatabaseUtil
+import com.commodorethrawn.attentionapp.util.PreferenceUtil
+import com.google.firebase.functions.FirebaseFunctions
+import java.util.*
 
 class FirstLaunchActivity : Activity() {
 
-    private lateinit var preferences : SharedPreferences
-    private lateinit var database : FirebaseDatabase
+    private lateinit var functions : FirebaseFunctions
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_setup_name);
-        preferences = getSharedPreferences("attentionapp", MODE_PRIVATE)
-        database = FirebaseDatabase.getInstance()
+        // Init vars
+        functions = FirebaseFunctions.getInstance()
+        // Setup content
+        setContentView(R.layout.activity_setup_name)
+        // Button listener
         val btnConfirmName : Button = findViewById(R.id.btnConfirmName)
         btnConfirmName.setOnClickListener(nameListener)
     }
 
     private val nameListener = View.OnClickListener {
+        // Animate
         ButtonUtil.doPressAnimation(applicationContext, it as Button)
+        // Set data
         val name = findViewById<EditText>(R.id.editName)
-        preferences.edit().putString("name", name.text.toString()).apply()
-        setContentView(R.layout.activity_first)
+        PreferenceUtil.name = name.text.toString()
+        MessagingService.generateToken(applicationContext)
+        // Display new content
+        setContentView(R.layout.activity_setup_choose)
         val btnCreate = findViewById<Button>(R.id.btnGet)
         val btnJoin = findViewById<Button>(R.id.btnGive)
-        MessagingService.generateToken(applicationContext)
+        // Button listeners
         btnJoin.setOnClickListener(joinListener)
         btnCreate.setOnClickListener(createListener)
     }
 
     private val joinListener = View.OnClickListener {
+        // Animate
+        ButtonUtil.doPressAnimation(applicationContext, it as Button)
+        // Set data
+        PreferenceUtil.role = PreferenceUtil.Role.RECEIVER
+        // Display new content
         setContentView(R.layout.activity_setup_getter)
-        preferences.edit().putBoolean("isBoyfriend", true).apply()
         val btnConfirm = findViewById<Button>(R.id.btnConfirm)
+        // Button listener
         btnConfirm.setOnClickListener(confirmJoinListener)
     }
 
     private val createListener = View.OnClickListener {
+        // Animate
+        ButtonUtil.doPressAnimation(applicationContext, it as Button)
+        // Set data
         val coupleId = UUID.randomUUID().toString().substring(0, 8)
+        PreferenceUtil.coupleId = coupleId
+        PreferenceUtil.role = PreferenceUtil.Role.SENDER
+        DatabaseUtil.addToDB()
+        // Display content
         setContentView(R.layout.activity_setup_giver)
         val text = findViewById<TextView>(R.id.code)
         text.text = coupleId
-        preferences.edit()
-                .putString("coupleId", coupleId)
-                .putBoolean("isBoyfriend", false)
-                .apply()
-        val token = preferences.getString("token", "")
-        database.getReference(coupleId).child("girlfriend").setValue(token)
-        val name = preferences.getString("name", "")
-        database.getReference(coupleId).child("girlfriendName").setValue(name)
     }
 
     private val confirmJoinListener = View.OnClickListener {
-        val token = preferences.getString("token", "")
-        val name = preferences.getString("name", "")
         val text = findViewById<EditText>(R.id.editCode)
-        val coupleId = text.text.toString()
-        database.getReference(coupleId).addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                if (snapshot.exists()) {
-                    ButtonUtil.doPressAnimation(applicationContext, it as Button)
-                    preferences.edit()
-                            .putString("coupleId", coupleId)
-                            .putBoolean("isSetup", true)
-                            .apply()
-                    database.getReference(coupleId).child("boyfriend").setValue(token)
-                    database.getReference(coupleId).child("boyfriendName").setValue(name)
-                    FirebaseFunctions.getInstance().getHttpsCallable("activate").call(coupleId)
-                    finishAndRemoveTask()
-                } else {
-                    ButtonUtil.doErrorAnimation(applicationContext, it as Button)
-                }
+        val coupleId = text.text.toString().trim()
+        DatabaseUtil.coupleExists(coupleId).continueWith { existsTask ->
+            if (existsTask.result)  {
+                // Animate
+                ButtonUtil.doPressAnimation(applicationContext, it as Button)
+                // Set data
+                PreferenceUtil.coupleId = coupleId
+                PreferenceUtil.setupComplete = true
+                DatabaseUtil.addToDB()
+                // Close
+                finishAndRemoveTask()
+            }  else {
+                // Animate
+                ButtonUtil.doErrorAnimation(applicationContext, it as Button)
             }
-            override fun onCancelled(error: DatabaseError) {
-            }
-        })
+        }
     }
 
 }
